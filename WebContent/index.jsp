@@ -103,6 +103,7 @@
             <li><a href="listorder.jsp">List All Orders</a></li>
             <li><a href="customer.jsp">Customer Info</a></li>
             <li><a href="editAccount.jsp">Edit Account</a></li>
+            <li><a href="listcustomers.jsp">Customer Directory</a></li>
             <li><a href="admin.jsp">Administrators</a></li>
             <li><a href="showcart.jsp">View Cart</a></li>
             <li><a href="logout.jsp">Log out</a></li>
