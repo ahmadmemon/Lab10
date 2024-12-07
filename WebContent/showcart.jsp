@@ -110,94 +110,97 @@
     <h1>Shopping Cart</h1>
 
 <%
-// Get the current list of products
-@SuppressWarnings({"unchecked"})
-HashMap<String, ArrayList<Object>> productList = (HashMap<String, ArrayList<Object>>) session.getAttribute("productList");
+try {
+    // Get the current list of products
+    @SuppressWarnings({"unchecked"})
+    HashMap<String, ArrayList<Object>> productList = (HashMap<String, ArrayList<Object>>) session.getAttribute("productList");
 
-if (productList == null || productList.isEmpty()) {
-    %>
-    <div class="empty-cart">
-        <h2>Your cart is empty</h2>
-        <p>Browse our products and add items to your cart!</p>
-        <a href="listprod.jsp" style="color: #007185; text-decoration: none;">Continue Shopping</a>
-    </div>
-    <%
-} else {
-    NumberFormat currFormat = NumberFormat.getCurrencyInstance();
-    %>
-    <table class="cart-table">
-        <tr>
-            <th>Product</th>
-            <th>Price</th>
-            <th>Quantity</th>
-            <th>Subtotal</th>
-            <th>Actions</th>
-        </tr>
+    if (productList == null || productList.isEmpty()) {
+        %>
+        <div class="empty-cart">
+            <h2>Your cart is empty</h2>
+            <p>Browse our products and add items to your cart!</p>
+            <a href="listprod.jsp" style="color: #007185; text-decoration: none;">Continue Shopping</a>
+        </div>
         <%
-        double total = 0;
-        Iterator<Map.Entry<String, ArrayList<Object>>> iterator = productList.entrySet().iterator();
-        
-        while (iterator.hasNext()) {
-            Map.Entry<String, ArrayList<Object>> entry = iterator.next();
-            ArrayList<Object> product = entry.getValue();
-            String productId = product.get(0).toString();
-            String productName = product.get(1).toString();
-            String price = product.get(2).toString();
-            double pr = Double.parseDouble(price);
-            int qty = Integer.parseInt(product.get(3).toString());
-            
-            // Get product image from database
-            String imageUrl = "";
-            try {
-                Connection con = DriverManager.getConnection(url, uid, pw);
-                String sql = "SELECT productImageURL FROM product WHERE productId = ?";
-                PreparedStatement pstmt = con.prepareStatement(sql);
-                pstmt.setString(1, productId);
-                ResultSet rst = pstmt.executeQuery();
-                
-                if (rst.next()) {
-                    imageUrl = rst.getString("productImageURL");
-                }
-                
-                con.close();
-            } catch (SQLException ex) {
-                out.println("Error: " + ex);
-            }
-            %>
+    } else {
+        NumberFormat currFormat = NumberFormat.getCurrencyInstance();
+        %>
+        <table class="cart-table">
             <tr>
-                <td>
-                    <div class="product-info">
-                        <img src="<%= imageUrl %>" alt="<%= productName %>" class="product-image">
-                        <a href="product.jsp?id=<%= productId %>" class="product-name"><%= productName %></a>
-                    </div>
-                </td>
-                <td><%= currFormat.format(pr) %></td>
-                <td>
-                    <form method="post" action="updatecart.jsp">
-                        <input type="hidden" name="id" value="<%= productId %>">
-                        <input type="number" name="quantity" value="<%= qty %>" min="0" class="quantity-input">
-                </td>
-                <td><%= currFormat.format(pr * qty) %></td>
-                <td>
-                        <input type="submit" value="Update" class="update-btn">
-                    </form>
-                    <form method="post" action="removecart.jsp">
-                        <input type="hidden" name="id" value="<%= productId %>">
-                        <input type="submit" value="Remove" class="remove-btn">
-                    </form>
-                </td>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+                <th>Actions</th>
             </tr>
             <%
-            total = total + pr * qty;
-        }
-        %>
-    </table>
+            double total = 0;
+            Iterator<Map.Entry<String, ArrayList<Object>>> iterator = productList.entrySet().iterator();
+            
+            while (iterator.hasNext()) {
+                Map.Entry<String, ArrayList<Object>> entry = iterator.next();
+                ArrayList<Object> product = entry.getValue();
+                try {
+                    String productId = product.get(0).toString();
+                    String productName = product.get(1).toString();
+                    String price = product.get(2).toString();
+                    double pr = Double.parseDouble(price);
+                    int qty = Integer.parseInt(product.get(3).toString());
+                    
+                    // Get product image from database
+                    String imageUrl = "";
+                    try (Connection con = DriverManager.getConnection(url, uid, pw)) {
+                        String sql = "SELECT productImageURL FROM product WHERE productId = ?";
+                        PreparedStatement pstmt = con.prepareStatement(sql);
+                        pstmt.setString(1, productId);
+                        ResultSet rst = pstmt.executeQuery();
+                        
+                        if (rst.next()) {
+                            imageUrl = rst.getString("productImageURL");
+                        }
+                    }
+                    %>
+                    <tr>
+                        <td>
+                            <div class="product-info">
+                                <img src="<%= imageUrl %>" alt="<%= productName %>" class="product-image">
+                                <a href="product.jsp?id=<%= productId %>" class="product-name"><%= productName %></a>
+                            </div>
+                        </td>
+                        <td><%= currFormat.format(pr) %></td>
+                        <td>
+                            <form method="post" action="updatecart.jsp">
+                                <input type="hidden" name="id" value="<%= productId %>">
+                                <input type="number" name="quantity" value="<%= qty %>" min="0" class="quantity-input">
+                        </td>
+                        <td><%= currFormat.format(pr * qty) %></td>
+                        <td>
+                                <input type="submit" value="Update" class="update-btn">
+                            </form>
+                            <form method="post" action="removecart.jsp">
+                                <input type="hidden" name="id" value="<%= productId %>">
+                                <input type="submit" value="Remove" class="remove-btn">
+                            </form>
+                        </td>
+                    </tr>
+                    <%
+                    total = total + pr * qty;
+                } catch (NumberFormatException e) {
+                    // Handle invalid number format
+                }
+            }
+            %>
+        </table>
 
-    <div class="total-section">
-        <h3>Order Total: <%= currFormat.format(total) %></h3>
-        <a href="checkout.jsp" class="checkout-btn">Proceed to Checkout</a>
-    </div>
-    <%
+        <div class="total-section">
+            <h3>Order Total: <%= currFormat.format(total) %></h3>
+            <a href="checkout.jsp" class="checkout-btn">Proceed to Checkout</a>
+        </div>
+        <%
+    }
+} catch (Exception e) {
+    // Handle any other exceptions
 }
 %>
 </div>
