@@ -69,12 +69,12 @@
         .register-link {
             text-align: center;
             margin-top: 20px;
-            color: #666;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
         }
         .register-link a {
-            color: #FF0000;
+            color: #007185;
             text-decoration: none;
-            font-weight: 600;
         }
         .register-link a:hover {
             text-decoration: underline;
@@ -112,7 +112,7 @@
         </form>
 
         <div class="register-link">
-            Don't have an account? <a href="customer.jsp">Register Now</a>
+            Don't have an account? <a href="createAccount.jsp">Register Now</a>
         </div>
     </div>
 
